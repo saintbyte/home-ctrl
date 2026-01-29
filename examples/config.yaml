@@ -1,0 +1,37 @@
+# Home Control Configuration
+# Example configuration file for home-ctrl
+
+# Server configuration
+server:
+  # Host to listen on (default: 127.0.0.1)
+  host: "0.0.0.0"
+  
+  # Port to listen on (default: 8080)
+  port: 8080
+
+# Authentication configuration
+auth:
+  # User credentials (username: password)
+  users:
+    admin: "admin123"
+    user: "user123"
+  
+  # Session TTL in hours (default: 24)
+  session_ttl_hours: 24
+
+# Data directory for SQLite database
+data_dir: "data"
+
+# Example of additional configuration sections
+# (currently not used, but available for future extensions)
+# database:
+#   host: "localhost"
+#   port: 5432
+#   username: "homectrl"
+#   password: "secret"
+
+# mqtt:
+#   broker: "mqtt://localhost:1883"
+#   client_id: "home-ctrl"
+#   topics:
+#     - "home/#"

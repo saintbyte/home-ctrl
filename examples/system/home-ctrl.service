@@ -1,0 +1,16 @@
+[Unit]
+Description=Home Control System
+After=network.target
+
+[Service]
+Type=simple
+User=home-ctrl
+Group=home-ctrl
+WorkingDirectory=/opt/home-ctrl
+ExecStart=/opt/home-ctrl/bin/home-ctrl-linux-amd64
+Restart=always
+RestartSec=5s
+Environment=HOME_CTRL_CONFIG=/etc/home-ctrl/config.yaml
+
+[Install]
+WantedBy=multi-user.target

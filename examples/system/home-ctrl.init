@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# home-ctrl	Starts the home-ctrl service
+#
+# chkconfig: 345 99 10
+# description: Home Control System
+# processname: home-ctrl
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Configuration
+NAME=home-ctrl
+DAEMON=/opt/home-ctrl/bin/home-ctrl-linux-amd64
+PIDFILE=/var/run/home-ctrl.pid
+USER=home-ctrl
+CONFIG=/etc/home-ctrl/config.yaml
+
+# Check if daemon exists
+[ -x "$DAEMON" ] || exit 0
+
+start() {
+    echo -n "Starting $NAME: "
+    daemon --user=$USER --pidfile=$PIDFILE "$DAEMON"
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$NAME
+    return $RETVAL
+}
+
+stop() {
+    echo -n "Stopping $NAME: "
+    killproc -p $PIDFILE $NAME
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$NAME
+    return $RETVAL
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    status)
+        status -p $PIDFILE $NAME
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0
