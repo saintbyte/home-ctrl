@@ -187,7 +187,6 @@ func (d *Database) DeleteKeyValue(key string) error {
 // CheckKeyValueStatus checks if a key exists and returns its status
 func (d *Database) CheckKeyValueStatus(key string) (string, bool, error) {
 	var status string
-	var exists bool
 
 	err := d.db.QueryRow(
 		"SELECT status FROM key_values WHERE key = ?",

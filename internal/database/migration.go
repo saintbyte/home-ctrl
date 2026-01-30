@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -41,7 +40,7 @@ func (d *Database) RunMigrations() error {
 // getMigrations gets all migration files
 func (d *Database) getMigrations() ([]Migration, error) {
 	migrationsDir := "internal/database/migrations"
-	
+
 	// Read migration files
 	files, err := os.ReadDir(migrationsDir)
 	if err != nil {
@@ -53,11 +52,11 @@ func (d *Database) getMigrations() ([]Migration, error) {
 		if file.IsDir() {
 			continue
 		}
-		
+
 		if filepath.Ext(file.Name()) != ".sql" {
 			continue
 		}
-		
+
 		migrations = append(migrations, Migration{
 			Name: file.Name(),
 			Path: filepath.Join(migrationsDir, file.Name()),
@@ -79,14 +78,14 @@ func (d *Database) runMigration(migration Migration) error {
 
 	// Split into individual statements
 	statements := strings.Split(string(content), ";")
-	
+
 	// Execute each statement
 	for _, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" {
 			continue
 		}
-		
+
 		if _, err := d.db.Exec(stmt); err != nil {
 			return fmt.Errorf("failed to execute statement '%s': %w", stmt, err)
 		}

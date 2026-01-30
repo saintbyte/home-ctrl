@@ -4,23 +4,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
+	"github.com/saintbyte/home-ctrl/internal/database"
+	"github.com/saintbyte/home-ctrl/internal/server/v1/handlers"
 )
 
 // Router represents the v1 API router
 type Router struct {
-	config    *config.Config
-	auth      *auth.Auth
-	database  *database.Database
-	router    *gin.Engine
+	config   *config.Config
+	auth     *auth.Auth
+	database *database.Database
+	router   *gin.Engine
 }
 
 // NewRouter creates a new v1 router
 func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database) *Router {
 	return &Router{
-		config:    cfg,
-		auth:      authService,
-		database:  db,
-		router:    gin.Default(),
+		config:   cfg,
+		auth:     authService,
+		database: db,
+		router:   gin.Default(),
 	}
 }
 
@@ -28,13 +30,13 @@ func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database
 func (r *Router) SetupRoutes() {
 	// Public routes (no authentication required)
 	r.setupPublicRoutes()
-	
+
 	// Auth routes
 	r.setupAuthRoutes()
-	
+
 	// Protected routes (require authentication)
 	r.setupProtectedRoutes()
-	
+
 	// 404 handler
 	r.router.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{
@@ -47,10 +49,10 @@ func (r *Router) SetupRoutes() {
 // setupPublicRoutes sets up routes that don't require authentication
 func (r *Router) setupPublicRoutes() {
 	publicGroup := r.router.Group("/api/v1")
-	
+
 	healthHandler := NewHealthHandler()
 	healthHandler.SetupRoutes(publicGroup)
-	
+
 	versionHandler := NewVersionHandler()
 	versionHandler.SetupRoutes(publicGroup)
 }
@@ -61,7 +63,7 @@ func (r *Router) setupAuthRoutes() {
 	{
 		// Login endpoint
 		authGroup.POST("/login", r.auth.LoginHandler())
-		
+
 		// Logout endpoint (requires authentication)
 		authGroup.POST("/logout", r.auth.AuthMiddleware(), r.auth.LogoutHandler())
 	}
@@ -71,13 +73,19 @@ func (r *Router) setupAuthRoutes() {
 func (r *Router) setupProtectedRoutes() {
 	protectedGroup := r.router.Group("/api/v1")
 	protectedGroup.Use(r.auth.AuthMiddleware())
-	
+
 	exampleHandler := NewExampleHandler(r.config)
 	exampleHandler.SetupRoutes(protectedGroup)
-	
+
 	// Add key-value handler
 	keyValueHandler := handlers.NewKeyValueHandler(r.database)
 	keyValueHandler.SetupRoutes(protectedGroup)
+}
+
+// SetupRoutesOn sets up routes on a specific router
+func (r *Router) SetupRoutesOn(router *gin.Engine) {
+	r.router = router
+	r.SetupRoutes()
 }
 
 // GetRouter returns the gin router

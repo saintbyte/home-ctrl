@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/saintbyte/home-ctrl/internal/database"
-	"github.com/saintbyte/home-ctrl/internal/database/models"
 )
 
 // KeyValueHandler handles key-value storage operations

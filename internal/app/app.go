@@ -47,7 +47,7 @@ func NewApp() (*App, error) {
 
 	// Initialize authentication
 	authService := auth.NewAuth(cfg, db)
-	
+
 	// Add users from config
 	for username, password := range cfg.Auth.Users {
 		authService.AddUser(username, password)
@@ -72,7 +72,7 @@ func (a *App) Run() error {
 	fmt.Printf("Running %s v%s\n", a.name, a.version)
 	fmt.Printf("Server listening on %s\n", a.config.GetServerAddress())
 	fmt.Printf("Data directory: %s\n", a.config.DataDir)
-	
+
 	// Start HTTP server
 	if err := a.server.Run(); err != nil {
 		return fmt.Errorf("server failed: %w", err)
@@ -87,4 +87,13 @@ func (a *App) Close() error {
 		return a.db.Close()
 	}
 	return nil
+}
+
+// RunAsDaemon runs the application as a daemon with signal handling
+func (a *App) RunAsDaemon() error {
+	daemon, err := NewDaemon()
+	if err != nil {
+		return fmt.Errorf("failed to create daemon: %w", err)
+	}
+	return daemon.RunDaemon()
 }

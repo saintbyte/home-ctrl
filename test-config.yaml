@@ -1,0 +1,11 @@
+server:
+  host: "127.0.0.1"
+  port: 8081
+
+auth:
+  users:
+    admin: "admin123"
+    user: "user123"
+  session_ttl_hours: 1
+
+data_dir: "test_data"
