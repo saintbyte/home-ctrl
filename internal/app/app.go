@@ -40,8 +40,8 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	// Initialize database with default data
-	if err := db.InitDatabase(); err != nil {
+	// Initialize database with migrations
+	if err := db.InitDatabaseWithMigrations(); err != nil {
 		log.Printf("Warning: failed to initialize database: %v", err)
 	}
 
@@ -53,8 +53,8 @@ func NewApp() (*App, error) {
 		authService.AddUser(username, password)
 	}
 
-	// Create server with auth
-	srv := server.NewServer(cfg, authService)
+	// Create server with auth and database
+	srv := server.NewServer(cfg, authService, db)
 	srv.SetupRoutes()
 
 	return &App{

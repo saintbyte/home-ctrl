@@ -8,17 +8,19 @@ import (
 
 // Router represents the v1 API router
 type Router struct {
-	config *config.Config
-	auth   *auth.Auth
-	router *gin.Engine
+	config    *config.Config
+	auth      *auth.Auth
+	database  *database.Database
+	router    *gin.Engine
 }
 
 // NewRouter creates a new v1 router
-func NewRouter(cfg *config.Config, authService *auth.Auth) *Router {
+func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database) *Router {
 	return &Router{
-		config: cfg,
-		auth:   authService,
-		router: gin.Default(),
+		config:    cfg,
+		auth:      authService,
+		database:  db,
+		router:    gin.Default(),
 	}
 }
 
@@ -72,6 +74,10 @@ func (r *Router) setupProtectedRoutes() {
 	
 	exampleHandler := NewExampleHandler(r.config)
 	exampleHandler.SetupRoutes(protectedGroup)
+	
+	// Add key-value handler
+	keyValueHandler := handlers.NewKeyValueHandler(r.database)
+	keyValueHandler.SetupRoutes(protectedGroup)
 }
 
 // GetRouter returns the gin router

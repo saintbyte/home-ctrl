@@ -82,6 +82,11 @@ func (d *Database) GetDB() *sql.DB {
 
 // InitDatabase initializes the database with default data
 func (d *Database) InitDatabase() error {
+	// Create key-value table
+	if err := d.CreateKeyValueTable(); err != nil {
+		return fmt.Errorf("failed to create key-value table: %w", err)
+	}
+
 	// Check if we have any API keys
 	var count int
 	if err := d.db.QueryRow("SELECT COUNT(*) FROM api_keys").Scan(&count); err != nil {

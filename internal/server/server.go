@@ -18,11 +18,11 @@ type Server struct {
 }
 
 // NewServer creates a new server instance
-func NewServer(cfg *config.Config, authService *auth.Auth) *Server {
+func NewServer(cfg *config.Config, authService *auth.Auth, db *database.Database) *Server {
 	return &Server{
 		config: cfg,
 		auth:   authService,
-		v1Router: v1.NewRouter(cfg, authService),
+		v1Router: v1.NewRouter(cfg, authService, db),
 		router: gin.Default(),
 	}
 }

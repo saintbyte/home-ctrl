@@ -31,9 +31,9 @@ func TestServerRoutes(t *testing.T) {
 	authService := auth.NewAuth(config.DefaultConfig(), db)
 	authService.AddUser("test", "test123")
 
-	// Create server with default config and auth
+	// Create server with default config, auth, and database
 	cfg := config.DefaultConfig()
-	srv := NewServer(cfg, authService)
+	srv := NewServer(cfg, authService, db)
 	srv.SetupRoutes()
 
 	t.Run("Health endpoint", func(t *testing.T) {
