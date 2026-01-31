@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,7 +50,7 @@ func (d *Daemon) ReloadConfig() error {
 		return fmt.Errorf("config path not set")
 	}
 
-	log.Printf("Reloading configuration from %s", d.configPath)
+	slog.Info("Reloading configuration from %s", d.configPath)
 
 	// Reload configuration
 	cfg, err := config.LoadConfig(d.configPath)
@@ -66,7 +66,7 @@ func (d *Daemon) ReloadConfig() error {
 		d.app.auth.AddUser(username, password)
 	}
 
-	log.Printf("Configuration reloaded successfully")
+	slog.Info("Configuration reloaded successfully")
 	return nil
 }
 
@@ -92,12 +92,12 @@ func (d *Daemon) RunDaemon() error {
 	// Start server in a goroutine
 	go func() {
 		if err := app.Run(); err != nil {
-			log.Printf("Server error: %v", err)
+			slog.Info("Server error: %v", err)
 			d.cancel()
 		}
 	}()
 
-	log.Printf("Daemon started, PID: %d", os.Getpid())
+	slog.Info("Daemon started, PID: %d", os.Getpid())
 
 	// Main signal handling loop
 	for {
@@ -105,10 +105,10 @@ func (d *Daemon) RunDaemon() error {
 		case sig := <-d.signalChan:
 			d.handleSignal(sig)
 		case <-d.shutdownChan:
-			log.Printf("Shutdown complete")
+			slog.Info("Shutdown complete")
 			return nil
 		case <-d.ctx.Done():
-			log.Printf("Context cancelled, shutting down")
+			slog.Info("Context cancelled, shutting down")
 			return nil
 		}
 	}
@@ -118,17 +118,17 @@ func (d *Daemon) RunDaemon() error {
 func (d *Daemon) handleSignal(sig os.Signal) {
 	switch sig {
 	case syscall.SIGHUP:
-		log.Printf("Received SIGHUP, reloading configuration")
+		slog.Warn("Received SIGHUP, reloading configuration")
 		if err := d.ReloadConfig(); err != nil {
-			log.Printf("Failed to reload config: %v", err)
+			slog.Info("Failed to reload config: %v", err)
 		}
 
 	case syscall.SIGINT, syscall.SIGTERM:
-		log.Printf("Received %v, shutting down gracefully", sig)
+		slog.Warn("Received %v, shutting down gracefully", sig)
 		d.shutdown()
 
 	default:
-		log.Printf("Received unexpected signal: %v", sig)
+		slog.Info("Received unexpected signal: %v", sig)
 	}
 }
 
@@ -140,7 +140,7 @@ func (d *Daemon) shutdown() {
 	// Close database connection
 	if d.app != nil && d.app.db != nil {
 		if err := d.app.Close(); err != nil {
-			log.Printf("Error closing database: %v", err)
+			slog.Warn("Error closing database: %v", err)
 		}
 	}
 
@@ -149,5 +149,5 @@ func (d *Daemon) shutdown() {
 
 	// Signal shutdown complete
 	close(d.shutdownChan)
-	log.Printf("Daemon stopped")
+	slog.Warn("Daemon stopped")
 }

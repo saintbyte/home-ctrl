@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -103,7 +103,7 @@ func (d *Database) InitDatabase() error {
 		if err != nil {
 			return fmt.Errorf("failed to insert default API key: %w", err)
 		}
-		log.Printf("Created default API key: %s", defaultKey)
+		slog.Info("Created default API key: %s", defaultKey)
 	}
 
 	return nil

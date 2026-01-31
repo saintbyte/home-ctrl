@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/saintbyte/home-ctrl/internal/migrations"
-	"log"
+	"log/slog"
 	"os"
+
+	"github.com/saintbyte/home-ctrl/internal/migrations"
 
 	"github.com/saintbyte/home-ctrl/internal/app"
 )
@@ -26,18 +27,17 @@ func main() {
 	// Initialize application
 	a, err := app.NewApp()
 	if err != nil {
-		log.Fatalf("Failed to initialize application: %v", err)
+		slog.Warn("Failed to initialize application: %v", err)
 	}
 
-	// Run application in appropriate mode
 	if *daemonMode {
 		fmt.Println("Running in daemon mode...")
 		if err := a.RunAsDaemon(); err != nil {
-			log.Fatalf("Daemon failed: %v", err)
+			slog.Warn("Daemon failed: %v", err)
 		}
 	} else {
 		if err := a.Run(); err != nil {
-			log.Fatalf("Application failed: %v", err)
+			slog.Warn("Application failed: %v", err)
 		}
 	}
 }

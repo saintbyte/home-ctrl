@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/saintbyte/home-ctrl/internal/auth"
@@ -42,7 +41,7 @@ func NewApp() (*App, error) {
 
 	// Initialize database with migrations
 	if err := db.InitDatabaseWithMigrations(); err != nil {
-		log.Printf("Warning: failed to initialize database: %v", err)
+		Log.Warn("failed to initialize database", "error", err)
 	}
 
 	// Initialize authentication

@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -68,7 +68,7 @@ func (d *Database) getMigrations() ([]Migration, error) {
 
 // runMigration runs a single migration
 func (d *Database) runMigration(migration Migration) error {
-	log.Printf("Running migration: %s", migration.Name)
+	slog.Info("Running migration: %s", migration.Name)
 
 	// Read migration file
 	content, err := os.ReadFile(migration.Path)
@@ -91,7 +91,7 @@ func (d *Database) runMigration(migration Migration) error {
 		}
 	}
 
-	log.Printf("Migration completed: %s", migration.Name)
+	slog.Info("Migration completed: %s", migration.Name)
 	return nil
 }
 
