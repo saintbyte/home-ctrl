@@ -1,0 +1,16 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+auth:
+  users:
+    admin: "admin123"
+    testuser: "testpass"
+  session_ttl_hours: 8  # 8 hours session timeout
+
+# Database configuration
+data_dir: "test_data"
+
+# Logging configuration
+log_level: "debug"
+log_format: "json"
