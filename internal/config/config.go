@@ -74,11 +74,10 @@ func DefaultConfig() *Config {
 
 // LoadConfig loads configuration from file
 func LoadConfig(path string) (*Config, error) {
-	// If config file doesn't exist, return default config
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return DefaultConfig(), nil
-	}
 
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil, fmt.Errorf("config file not found: %s %w", path, err)
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)

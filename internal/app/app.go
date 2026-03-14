@@ -2,13 +2,12 @@ package app
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
 	"github.com/saintbyte/home-ctrl/internal/database"
 	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server"
+	"os"
 )
 
 // App represents the main application
@@ -37,7 +36,11 @@ func NewApp() (*App, error) {
 	var cfg *config.Config
 	var loadErr error
 	for _, path := range configPaths {
+		fmt.Println(path)
 		cfg, loadErr = config.LoadConfig(path)
+		if loadErr != nil {
+			Log.Warn("failed loading configuration file:", "error=", loadErr)
+		}
 		if loadErr == nil && cfg != nil {
 			break
 		}
@@ -49,12 +52,12 @@ func NewApp() (*App, error) {
 	// Initialize database
 	db, err := database.NewDatabase(cfg.DataDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database: %w", err)
+		return nil, fmt.Errorf("failed to initialize database: %w", err, cfg.DataDir)
 	}
 
 	// Initialize database with migrations
 	if err := db.InitDatabaseWithMigrations(); err != nil {
-		Log.Warn("failed to initialize database", "error", err)
+		Log.Warn("failed to initialize database", "error", cfg.DataDir)
 	}
 
 	// Initialize authentication
