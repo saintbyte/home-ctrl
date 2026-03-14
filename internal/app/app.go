@@ -7,6 +7,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
 	"github.com/saintbyte/home-ctrl/internal/database"
+	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server"
 )
 
@@ -18,19 +19,31 @@ type App struct {
 	db      *database.Database
 	auth    *auth.Auth
 	server  *server.Server
+	sched   *scheduler.Scheduler
 }
 
 // NewApp creates a new application instance
 func NewApp() (*App, error) {
-	// Load configuration
-	configPath := os.Getenv("HOME_CTRL_CONFIG")
-	if configPath == "" {
-		configPath = "config.yaml"
+	configPaths := []string{}
+	if envPath := os.Getenv("HOME_CTRL_CONFIG"); envPath != "" {
+		configPaths = []string{envPath}
+	} else {
+		configPaths = []string{
+			"config.yaml",
+			"/etc/home-ctrl/config.yaml",
+		}
 	}
 
-	cfg, err := config.LoadConfig(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load config: %w", err)
+	var cfg *config.Config
+	var loadErr error
+	for _, path := range configPaths {
+		cfg, loadErr = config.LoadConfig(path)
+		if loadErr == nil && cfg != nil {
+			break
+		}
+	}
+	if cfg == nil {
+		cfg = config.DefaultConfig()
 	}
 
 	// Initialize database
@@ -52,8 +65,13 @@ func NewApp() (*App, error) {
 		authService.AddUser(username, password)
 	}
 
+	// Create scheduler
+	sched := scheduler.NewScheduler(cfg, func(taskName string) {
+		Log.Info("task executed", "task", taskName)
+	})
+
 	// Create server with auth and database
-	srv := server.NewServer(cfg, authService, db)
+	srv := server.NewServer(cfg, authService, db, sched)
 	srv.SetupRoutes()
 
 	return &App{
@@ -63,6 +81,7 @@ func NewApp() (*App, error) {
 		db:      db,
 		auth:    authService,
 		server:  srv,
+		sched:   sched,
 	}, nil
 }
 
@@ -71,6 +90,9 @@ func (a *App) Run() error {
 	fmt.Printf("Running %s v%s\n", a.name, a.version)
 	fmt.Printf("Server listening on %s\n", a.config.GetServerAddress())
 	fmt.Printf("Data directory: %s\n", a.config.DataDir)
+
+	// Start scheduler
+	a.sched.Start()
 
 	// Start HTTP server
 	if err := a.server.Run(); err != nil {
@@ -82,10 +104,18 @@ func (a *App) Run() error {
 
 // Close closes the application resources
 func (a *App) Close() error {
+	if a.sched != nil {
+		a.sched.Stop()
+	}
 	if a.db != nil {
 		return a.db.Close()
 	}
 	return nil
+}
+
+// GetScheduler returns the scheduler
+func (a *App) GetScheduler() *scheduler.Scheduler {
+	return a.sched
 }
 
 // RunAsDaemon runs the application as a daemon with signal handling

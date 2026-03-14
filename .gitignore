@@ -35,3 +35,5 @@ bin/
 .vscode/
 /test_data/home-ctrl.db
 /data/
+public/
+/config.yaml

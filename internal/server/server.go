@@ -10,6 +10,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
 	"github.com/saintbyte/home-ctrl/internal/database"
+	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server/v1"
 )
 
@@ -22,11 +23,11 @@ type Server struct {
 }
 
 // NewServer creates a new server instance
-func NewServer(cfg *config.Config, authService *auth.Auth, db *database.Database) *Server {
+func NewServer(cfg *config.Config, authService *auth.Auth, db *database.Database, sched *scheduler.Scheduler) *Server {
 	return &Server{
 		config:   cfg,
 		auth:     authService,
-		v1Router: v1.NewRouter(cfg, authService, db),
+		v1Router: v1.NewRouter(cfg, authService, db, sched),
 		router:   gin.Default(),
 	}
 }

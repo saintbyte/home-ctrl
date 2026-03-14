@@ -5,6 +5,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
 	"github.com/saintbyte/home-ctrl/internal/database"
+	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server/v1/handlers"
 )
 
@@ -14,15 +15,17 @@ type Router struct {
 	auth     *auth.Auth
 	database *database.Database
 	router   *gin.Engine
+	sched    *scheduler.Scheduler
 }
 
 // NewRouter creates a new v1 router
-func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database) *Router {
+func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database, sched *scheduler.Scheduler) *Router {
 	return &Router{
 		config:   cfg,
 		auth:     authService,
 		database: db,
 		router:   gin.Default(),
+		sched:    sched,
 	}
 }
 
@@ -77,9 +80,11 @@ func (r *Router) setupProtectedRoutes() {
 	exampleHandler := NewExampleHandler(r.config)
 	exampleHandler.SetupRoutes(protectedGroup)
 
-	// Add key-value handler
 	keyValueHandler := handlers.NewKeyValueHandler(r.database)
 	keyValueHandler.SetupRoutes(protectedGroup)
+
+	taskHandler := handlers.NewTaskHandler(r.config, r.sched)
+	taskHandler.SetupRoutes(protectedGroup)
 }
 
 // SetupRoutesOn sets up routes on a specific router

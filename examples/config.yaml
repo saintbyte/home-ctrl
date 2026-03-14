@@ -35,3 +35,46 @@ data_dir: "data"
 #   client_id: "home-ctrl"
 #   topics:
 #     - "home/#"
+
+# Background tasks (loaded from config)
+tasks:
+  # Example task - runs every hour
+  - name: "cleanup_old_sessions"
+    schedule: "0 * * * *"  # cron expression
+    enabled: true
+    command: "cleanup_sessions"
+  
+  # Example task - runs daily at midnight
+  - name: "daily_backup"
+    schedule: "0 0 * * *"
+    enabled: false
+    command: "backup_data"
+  
+  # Example task - runs every 5 minutes
+  - name: "check_devices"
+    schedule: "*/5 * * * *"
+    enabled: true
+    command: "check_device_status"
+
+# Main view configuration
+mainview:
+  widgets:
+    # Example widget - clock
+    - name: "clock"
+      params:
+        timezone: "UTC"
+        format: "24h"
+    
+    # Example widget - weather
+    - name: "weather"
+      params:
+        location: "Moscow"
+        units: "metric"
+    
+    # Example widget - sensor list
+    - name: "sensors"
+      params:
+        sensors:
+          - "temperature_living_room"
+          - "temperature_bedroom"
+          - "humidity_bathroom"
