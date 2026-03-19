@@ -83,6 +83,9 @@ func (r *Router) setupProtectedRoutes() {
 	keyValueHandler := handlers.NewKeyValueHandler(r.database)
 	keyValueHandler.SetupRoutes(protectedGroup)
 
+	mainViewHandler := handlers.NewMainViewHandler(r.config)
+	mainViewHandler.SetupRoutes(protectedGroup)
+
 	taskHandler := handlers.NewTaskHandler(r.config, r.sched)
 	taskHandler.SetupRoutes(protectedGroup)
 }

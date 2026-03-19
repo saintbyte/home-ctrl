@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/saintbyte/home-ctrl/internal/version"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ func (h *VersionHandler) SetupRoutes(router *gin.RouterGroup) {
 // getVersion handles GET /version
 func (h *VersionHandler) getVersion(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"version": "0.1.0",
-		"name":    "home-ctrl",
+		"version": version.Version,
+		"name":    version.AppName,
 	})
 }
