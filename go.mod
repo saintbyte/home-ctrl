@@ -7,7 +7,7 @@ toolchain go1.24.12
 require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
-	github.com/mattn/go-sqlite3 v1.14.33
+	github.com/mattn/go-sqlite3 v1.14.42
 	github.com/paypal/gatt v0.0.0-20151011220935-4ae819d591cf
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
