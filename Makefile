@@ -14,28 +14,29 @@ all: build
 build:
 	@echo "Building home-ctrl..."
 	@mkdir -p $(BIN_DIR)
-	@GOOS=linux GOARCH=amd64 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-amd64 ./cmd/home-ctrl
-	@GOOS=linux GOARCH=386 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-386 ./cmd/home-ctrl
+	@GOOS=linux GOARCH=amd64 CGO_ENABLE=1 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-amd64 ./cmd/home-ctrl
+	@GOOS=linux GOARCH=386 CGO_ENABLE=1 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-386 ./cmd/home-ctrl
 	@echo "Build complete! Binaries available in $(BIN_DIR)/"
 
 # Build for specific architecture
 build-linux-386:
 	@echo "Building for Linux i386..."
 	@mkdir -p $(BIN_DIR)
-	@GOOS=linux GOARCH=386 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-386 ./cmd/home-ctrl
+# -tags "libsqlite3 linux"  cgo, net ?
+	@GOOS=linux GOARCH=386 CGO_ENABLE=1 go build -tags "libsqlite3 linux" -o $(BIN_DIR)/$(BIN_NAME)-linux-386 ./cmd/home-ctrl
 	@echo "Build complete: $(BIN_DIR)/$(BIN_NAME)-linux-386"
 
 build-linux-amd64:
 	@echo "Building for Linux amd64..."
 	@mkdir -p $(BIN_DIR)
-	@GOOS=linux GOARCH=amd64 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-amd64 ./cmd/home-ctrl
+	@GOOS=linux GOARCH=amd64 CGO_ENABLE=0 go build -o $(BIN_DIR)/$(BIN_NAME)-linux-amd64 ./cmd/home-ctrl
 	@echo "Build complete: $(BIN_DIR)/$(BIN_NAME)-linux-amd64"
 
 # Run database migrations
 migrate:
 	@echo "Running database migrations..."
 	@mkdir -p $(BIN_DIR)
-	@GOOS=linux GOARCH=amd64 go build -o $(BIN_DIR)/home-ctrl-migrate ./cmd/home-ctrl
+	@GOOS=linux GOARCH=amd64 CGO_ENABLE=0 go build -o $(BIN_DIR)/home-ctrl-migrate ./cmd/home-ctrl
 	@$(BIN_DIR)/home-ctrl-migrate migrate
 	@echo "Migrations complete!"
 
