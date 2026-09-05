@@ -44,6 +44,21 @@ tasks:
     enabled: true
     command: "cleanup_sessions"
   
+  # Yandex Weather download task - downloads weather data from the Yandex
+  # Weather API and keeps it in memory. Runs every 60 minutes.
+  - name: "yandex_weather"
+    schedule: "0 * * * *"  # every 60 minutes
+    enabled: true
+    command: "yandex_weather"
+    params:
+      key: "YOUR_YANDEX_WEATHER_API_KEY"  # X-Yandex-Weather-Key API key
+      lat: "55.7558"
+      lon: "37.6173"
+      lang: "ru_RU"   # optional, default: ru_RU
+      limit: 2        # optional, default: 2
+      hours: true     # optional, default: true
+      extra: true     # optional, default: true
+  
   # Example task - runs daily at midnight
   - name: "daily_backup"
     schedule: "0 0 * * *"

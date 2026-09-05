@@ -7,6 +7,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/database"
 	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server"
+	"github.com/saintbyte/home-ctrl/internal/weather"
 	"os"
 )
 
@@ -19,6 +20,7 @@ type App struct {
 	auth    *auth.Auth
 	server  *server.Server
 	sched   *scheduler.Scheduler
+	weather *weather.YandexWeather
 }
 
 // NewApp creates a new application instance
@@ -68,13 +70,29 @@ func NewApp() (*App, error) {
 		authService.AddUser(username, password)
 	}
 
+	// Create Yandex Weather service from the configured task
+	var weatherService *weather.YandexWeather
+	for _, task := range cfg.Tasks {
+		if task.Command == "yandex_weather" {
+			weatherService = weather.NewYandexWeather(task)
+			break
+		}
+	}
+
 	// Create scheduler
-	sched := scheduler.NewScheduler(cfg, func(taskName string) {
-		Log.Info("task executed", "task", taskName)
+	sched := scheduler.NewScheduler(cfg, func(task config.Task) {
+		if task.Command == "yandex_weather" && weatherService != nil {
+			Log.Info("yandex weather: fetching")
+			if err := weatherService.Fetch(); err != nil {
+				Log.Warn("yandex weather: fetch failed", "error", err.Error())
+			}
+			return
+		}
+		Log.Info("task executed", "task", task.Name)
 	})
 
 	// Create server with auth and database
-	srv := server.NewServer(cfg, authService, db, sched)
+	srv := server.NewServer(cfg, authService, db, sched, weatherService)
 	srv.SetupRoutes()
 
 	return &App{
@@ -85,6 +103,7 @@ func NewApp() (*App, error) {
 		auth:    authService,
 		server:  srv,
 		sched:   sched,
+		weather: weatherService,
 	}, nil
 }
 
@@ -93,6 +112,15 @@ func (a *App) Run() error {
 	fmt.Printf("Running %s v%s\n", a.name, a.version)
 	fmt.Printf("Server listening on %s\n", a.config.GetServerAddress())
 	fmt.Printf("Data directory: %s\n", a.config.DataDir)
+
+	// Fetch weather once at startup so the API returns data immediately
+	if a.weather != nil && a.weather.Enabled() {
+		go func() {
+			if err := a.weather.Fetch(); err != nil {
+				Log.Warn("yandex weather: initial fetch failed", "error", err.Error())
+			}
+		}()
+	}
 
 	// Start scheduler
 	a.sched.Start()

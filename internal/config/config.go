@@ -9,10 +9,11 @@ import (
 
 // Task represents a background task configuration
 type Task struct {
-	Name     string `yaml:"name"`
-	Schedule string `yaml:"schedule"` // cron expression
-	Enabled  bool   `yaml:"enabled"`
-	Command  string `yaml:"command"`
+	Name     string         `yaml:"name"`
+	Schedule string         `yaml:"schedule"` // cron expression
+	Enabled  bool           `yaml:"enabled"`
+	Command  string         `yaml:"command"`
+	Params   map[string]any `yaml:"params"`
 }
 
 // Widget represents a widget in the main view
@@ -94,4 +95,31 @@ func LoadConfig(path string) (*Config, error) {
 // GetServerAddress returns the server address (host:port)
 func (c *Config) GetServerAddress() string {
 	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
+
+// StringParam returns the string value of a task/widget parameter, or "" if absent
+func StringParam(params map[string]any, name string) string {
+	if v, ok := params[name].(string); ok {
+		return v
+	}
+	return ""
+}
+
+// IntParam returns the int value of a task/widget parameter, or 0 if absent
+func IntParam(params map[string]any, name string) int {
+	switch v := params[name].(type) {
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case float64:
+		return int(v)
+	}
+	return 0
+}
+
+// BoolParam returns the bool value of a task/widget parameter
+func BoolParam(params map[string]any, name string) (bool, bool) {
+	v, ok := params[name].(bool)
+	return v, ok
 }

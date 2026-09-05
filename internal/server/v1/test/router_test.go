@@ -11,6 +11,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
 	"github.com/saintbyte/home-ctrl/internal/database"
+	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server/v1"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,16 +24,14 @@ func setupTestRouter() *v1.Router {
 	}
 
 	// Initialize authentication
-	authService := auth.NewAuth(cfg.Auth)
-
-	// Initialize database
 	db, err := database.NewDatabase("../../../../../test_data")
 	if err != nil {
 		panic(err)
 	}
+	authService := auth.NewAuth(cfg, db)
 
 	// Initialize router
-	router := v1.NewRouter(cfg, authService, db)
+	router := v1.NewRouter(cfg, authService, db, scheduler.NewScheduler(cfg, nil), nil)
 	router.SetupRoutes()
 
 	return router

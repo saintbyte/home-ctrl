@@ -8,7 +8,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/config"
 )
 
-type TaskExecutor func(taskName string)
+type TaskExecutor func(task config.Task)
 
 type Scheduler struct {
 	cron     *cron.Cron
@@ -53,7 +53,7 @@ func (s *Scheduler) addTask(task config.Task) {
 	id, err := s.cron.AddFunc(task.Schedule, func() {
 		fmt.Printf("Running task: %s\n", task.Name)
 		if s.executor != nil {
-			s.executor(task.Name)
+			s.executor(task)
 		}
 	})
 
@@ -105,7 +105,7 @@ func (s *Scheduler) RunTask(name string) error {
 			go func() {
 				fmt.Printf("Manually running task: %s\n", name)
 				if s.executor != nil {
-					s.executor(name)
+					s.executor(task)
 				}
 			}()
 			return nil

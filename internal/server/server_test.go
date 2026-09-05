@@ -9,6 +9,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/auth"
 	"github.com/saintbyte/home-ctrl/internal/config"
 	"github.com/saintbyte/home-ctrl/internal/database"
+	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,8 +25,8 @@ func TestServerRoutes(t *testing.T) {
 	defer db.Close()
 	defer func() {
 		// Cleanup test database
-		_ = db.GetDB().Exec("DROP TABLE IF EXISTS api_keys")
-		_ = db.GetDB().Exec("DROP TABLE IF EXISTS sessions")
+		db.GetDB().Exec("DROP TABLE IF EXISTS api_keys")
+		db.GetDB().Exec("DROP TABLE IF EXISTS sessions")
 	}()
 
 	authService := auth.NewAuth(config.DefaultConfig(), db)
@@ -33,7 +34,7 @@ func TestServerRoutes(t *testing.T) {
 
 	// Create server with default config, auth, and database
 	cfg := config.DefaultConfig()
-	srv := NewServer(cfg, authService, db)
+	srv := NewServer(cfg, authService, db, scheduler.NewScheduler(cfg, nil), nil)
 	srv.SetupRoutes()
 
 	t.Run("Health endpoint", func(t *testing.T) {
@@ -47,7 +48,7 @@ func TestServerRoutes(t *testing.T) {
 
 	t.Run("Version endpoint", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/version", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/version", nil)
 		srv.GetRouter().ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)

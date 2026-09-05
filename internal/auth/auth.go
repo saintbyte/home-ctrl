@@ -100,8 +100,12 @@ func generateRandomString(length int) (string, error) {
 // AuthMiddleware is a Gin middleware for authentication
 func (a *Auth) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Check for API key in header
-		apiKey := c.GetHeader("X-API-Key")
+		// Check for API key in query string
+		apiKey := c.Query("api_key")
+		if apiKey == "" {
+			// Check for API key in header
+			apiKey = c.GetHeader("X-API-Key")
+		}
 		if apiKey != "" && a.ValidateAPIKey(apiKey) {
 			c.Next()
 			return

@@ -7,6 +7,7 @@ import (
 	"github.com/saintbyte/home-ctrl/internal/database"
 	"github.com/saintbyte/home-ctrl/internal/scheduler"
 	"github.com/saintbyte/home-ctrl/internal/server/v1/handlers"
+	"github.com/saintbyte/home-ctrl/internal/weather"
 )
 
 // Router represents the v1 API router
@@ -16,16 +17,18 @@ type Router struct {
 	database *database.Database
 	router   *gin.Engine
 	sched    *scheduler.Scheduler
+	weather  *weather.YandexWeather
 }
 
 // NewRouter creates a new v1 router
-func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database, sched *scheduler.Scheduler) *Router {
+func NewRouter(cfg *config.Config, authService *auth.Auth, db *database.Database, sched *scheduler.Scheduler, weatherService *weather.YandexWeather) *Router {
 	return &Router{
 		config:   cfg,
 		auth:     authService,
 		database: db,
 		router:   gin.Default(),
 		sched:    sched,
+		weather:  weatherService,
 	}
 }
 
@@ -88,6 +91,9 @@ func (r *Router) setupProtectedRoutes() {
 
 	taskHandler := handlers.NewTaskHandler(r.config, r.sched)
 	taskHandler.SetupRoutes(protectedGroup)
+
+	weatherHandler := handlers.NewWeatherHandler(r.weather)
+	weatherHandler.SetupRoutes(protectedGroup)
 }
 
 // SetupRoutesOn sets up routes on a specific router

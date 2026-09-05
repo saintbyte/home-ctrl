@@ -109,9 +109,54 @@ Authorization: Bearer your-token-here
 - `200 OK` - Request successful
 - `401 Unauthorized` - Invalid or missing authentication
 
-### Example Protected Endpoint
+### Yandex Weather
 
-**GET** `/api/v1/example`
+**GET** `/api/v1/yandex-weather`
+
+Returns the latest Yandex Weather data stored in memory (downloaded by the background task).
+
+**Headers:**
+```
+Authorization: Bearer your-token-here
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "now": 1717088005,
+    "fact": {
+      "temp": 19,
+      "condition": "overcast"
+    }
+  },
+  "last_update": "2024-05-30T12:00:00Z"
+}
+```
+
+**Configuration** (`config.yaml`):
+```yaml
+tasks:
+  - name: "yandex_weather"
+    schedule: "0 * * * *"  # runs every 60 minutes
+    enabled: true
+    command: "yandex_weather"
+    params:
+      key: "YOUR_YANDEX_WEATHER_API_KEY"  # X-Yandex-Weather-Key header
+      lat: "55.7558"
+      lon: "37.6173"
+      lang: "ru_RU"  # default: ru_RU
+      limit: 2       # default: 2
+      hours: true    # default: true
+      extra: true    # default: true
+```
+
+**Status Codes:**
+- `200 OK` - Weather data available
+- `404 Not Found` - Yandex weather is not configured
+- `401 Unauthorized` - Invalid or missing authentication
+
+### Example Protected Endpoint
 
 Example endpoint that demonstrates protected access.
 
