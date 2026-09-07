@@ -30,8 +30,12 @@ type MainView struct {
 // Config represents the application configuration
 type Config struct {
 	Server struct {
-		Host string `yaml:"host"`
-		Port int    `yaml:"port"`
+		Host     string `yaml:"host"`
+		Port     int    `yaml:"port"`
+		TLS      bool   `yaml:"tls"`
+		TLSCert  string `yaml:"tls_cert"`
+		TLSKey   string `yaml:"tls_key"`
+		CACert   string `yaml:"ca_cert"`
 	} `yaml:"server"`
 
 	Auth struct {
@@ -50,11 +54,16 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		Server: struct {
-			Host string `yaml:"host"`
-			Port int    `yaml:"port"`
+			Host     string `yaml:"host"`
+			Port     int    `yaml:"port"`
+			TLS      bool   `yaml:"tls"`
+			TLSCert  string `yaml:"tls_cert"`
+			TLSKey   string `yaml:"tls_key"`
+			CACert   string `yaml:"ca_cert"`
 		}{
 			Host: "127.0.0.1",
 			Port: 8080,
+			TLS:  false,
 		},
 		Auth: struct {
 			Users      map[string]string `yaml:"users"`

@@ -8,6 +8,20 @@ server:
   
   # Port to listen on (default: 8080)
   port: 8080
+  
+  # Enable HTTPS/TLS (default: false)
+  tls: false
+  
+  # Path to TLS certificate file (required when tls: true)
+  tls_cert: "/etc/home-ctrl/server.crt"
+  
+  # Path to TLS private key file (required when tls: true)
+  tls_key: "/etc/home-ctrl/server.key"
+  
+  # Path to the root (CA) certificate file. When set, it is published for
+  # download without authentication at GET /api/v1/cert so clients can trust
+  # the server certificate.
+  ca_cert: "/etc/home-ctrl/root-ca.crt"
 
 # Authentication configuration
 auth:

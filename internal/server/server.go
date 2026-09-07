@@ -100,8 +100,16 @@ func (s *Server) SetupRoutes() {
 // Run starts the HTTP server
 func (s *Server) Run() error {
 	address := s.config.GetServerAddress()
-	fmt.Printf("Starting server on %s\n", address)
 
+	if s.config.Server.TLS {
+		if s.config.Server.TLSCert == "" || s.config.Server.TLSKey == "" {
+			return fmt.Errorf("tls enabled but tls_cert or tls_key is not set")
+		}
+		fmt.Printf("Starting server on https://%s\n", address)
+		return s.router.RunTLS(address, s.config.Server.TLSCert, s.config.Server.TLSKey)
+	}
+
+	fmt.Printf("Starting server on http://%s\n", address)
 	return s.router.Run(address)
 }
 

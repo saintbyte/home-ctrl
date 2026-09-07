@@ -61,6 +61,9 @@ func (r *Router) setupPublicRoutes() {
 
 	versionHandler := NewVersionHandler()
 	versionHandler.SetupRoutes(publicGroup)
+
+	certHandler := NewCertificateHandler(r.config)
+	certHandler.SetupRoutes(publicGroup)
 }
 
 // setupAuthRoutes sets up authentication-related routes
