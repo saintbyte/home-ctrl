@@ -32,6 +32,7 @@ type Config struct {
 	Server struct {
 		Host     string `yaml:"host"`
 		Port     int    `yaml:"port"`
+		HTTPPort int    `yaml:"http_port"`
 		TLS      bool   `yaml:"tls"`
 		TLSCert  string `yaml:"tls_cert"`
 		TLSKey   string `yaml:"tls_key"`
@@ -56,6 +57,7 @@ func DefaultConfig() *Config {
 		Server: struct {
 			Host     string `yaml:"host"`
 			Port     int    `yaml:"port"`
+			HTTPPort int    `yaml:"http_port"`
 			TLS      bool   `yaml:"tls"`
 			TLSCert  string `yaml:"tls_cert"`
 			TLSKey   string `yaml:"tls_key"`

@@ -12,6 +12,15 @@ server:
   # Enable HTTPS/TLS (default: false)
   tls: false
   
+  # Plain HTTP port used for HSTS bootstrap when tls: true (default: 0 =
+  # disabled). This listener serves ONLY the main page (/) and the root
+  # certificate download (/api/v1/cert) over HTTP and redirects everything
+  # else to HTTPS with a 301. This is what makes HSTS bootstrap work: the
+  # browser first downloads and trusts the CA, then receives the
+  # Strict-Transport-Security header over HTTPS. Set to 0 to disable.
+  # Recommended: 80 (often needs privileged port) or another free port.
+  http_port: 8081
+  
   # Path to TLS certificate file (required when tls: true)
   tls_cert: "/etc/home-ctrl/server.crt"
   

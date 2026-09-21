@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -99,5 +100,94 @@ func TestServerRoutes(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Contains(t, w.Body.String(), "Bad Request")
+	})
+
+	t.Run("HSTS header sent on TLS", func(t *testing.T) {
+		cfg := config.DefaultConfig()
+		cfg.Server.TLS = true
+		tlsSrv := NewServer(cfg, authService, db, scheduler.NewScheduler(cfg, nil), nil)
+		tlsSrv.SetupRoutes()
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/health", nil)
+		tlsSrv.GetRouter().ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "max-age=31536000", w.Header().Get("Strict-Transport-Security"))
+	})
+
+	t.Run("No HSTS header without TLS", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/health", nil)
+		srv.GetRouter().ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Empty(t, w.Header().Get("Strict-Transport-Security"))
+	})
+}
+
+func TestBootstrapRouter(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// The app resolves ./public relative to the repo root, but tests run from
+	// the package directory. Change to the repo root for the duration.
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get working directory: %v", err)
+	}
+	defer os.Chdir(cwd)
+	if err := os.Chdir("../.."); err != nil {
+		t.Fatalf("Failed to change to repo root: %v", err)
+	}
+
+	cfg := config.DefaultConfig()
+	cfg.Server.TLS = true
+	cfg.Server.Port = 8443
+	cfg.Server.HTTPPort = 8080
+
+	db, err := database.NewDatabase("test_data")
+	if err != nil {
+		t.Fatalf("Failed to create test database: %v", err)
+	}
+	defer db.Close()
+	defer func() {
+		db.GetDB().Exec("DROP TABLE IF EXISTS api_keys")
+		db.GetDB().Exec("DROP TABLE IF EXISTS sessions")
+	}()
+
+	authService := auth.NewAuth(config.DefaultConfig(), db)
+	srv := NewServer(cfg, authService, db, scheduler.NewScheduler(cfg, nil), nil)
+	bootstrap := srv.buildBootstrapRouter()
+
+	t.Run("Main page is served over HTTP", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/", nil)
+		bootstrap.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("Cert download served over HTTP", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/api/v1/cert", nil)
+		bootstrap.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "root certificate is not configured")
+	})
+
+	t.Run("Everything else redirected to HTTPS preserving host", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/api/v1/version", nil)
+		req.Host = "home.lan:8080"
+		bootstrap.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusMovedPermanently, w.Code)
+		assert.Equal(t, "https://home.lan:8443/api/v1/version", w.Header().Get("Location"))
+	})
+
+	t.Run("Bootstrap responses carry no HSTS header", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/api/v1/version", nil)
+		bootstrap.ServeHTTP(w, req)
+		assert.Empty(t, w.Header().Get("Strict-Transport-Security"))
 	})
 }
